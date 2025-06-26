@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ملك الكلمة - تمارين نطق وتنفس للأطفال</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Cairo', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a5a7a 0%, #0a3d62 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: #fff;
+            direction: rtl;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        header {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .logo {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+        
+        .logo h1 {
+            font-size: 2.5rem;
+            text-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+            color: #FFD700;
+        }
+        
+        .logo i {
+            font-size: 2.8rem;
+            color: #FFD700;
+            animation: pulse 2s infinite;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-top: 5px;
+            color: #a8e6cf;
+        }
+        
+        .game-area {
+            padding: 30px;
+            min-height: 400px;
+        }
+        
+        .modes {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .mode-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50px;
+            padding: 12px 20px;
+            color: white;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .mode-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-3px);
+        }
+        
+        .mode-btn.active {
+            background: #FFD700;
+            color: #0a3d62;
+            box-shadow: 0 5px 20px rgba(255, 215, 0, 0.4);
+        }
+        
+        .content {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            min-height: 320px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .level-info {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+        }
+        
+        .character {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            background: #FFD700;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        .character::before {
+            content: "";
+            position: absolute;
+            width: 140px;
+            height: 140px;
+            border: 2px dashed rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            animation: rotate 20s linear infinite;
+        }
+        
+        .character i {
+            font-size: 4rem;
+            color: #0a3d62;
+        }
+        
+        .word-display {
+            font-size: 2.8rem;
+            font-weight: bold;
+            text-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+            color: #FFD700;
+            min-height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+        }
+        
+        .image-display {
+            width: 150px;
+            height: 150px;
+            background: white;
+            border-radius: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto;
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .image-display i {
+            font-size: 5rem;
+            color: #0a3d62;
+        }
+        
+        .feedback {
+            font-size: 1.6rem;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            text-align: center;
+            padding: 0 10px;
+        }
+        
+        .mic-btn {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: #4CAF50;
+            border: none;
+            color: white;
+            font-size: 2.5rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 15px auto;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .mic-btn.listening {
+            animation: pulse 1.5s infinite;
+            background: #FF416C;
+        }
+        
+        .mic-btn:hover {
+            transform: scale(1.05);
+        }
+        
+        .instructions {
+            text-align: center;
+            font-size: 1.1rem;
+            margin-top: 15px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            line-height: 1.6;
+        }
+        
+        .progress-container {
+            width: 100%;
+            height: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            margin-top: 15px;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(to right, #4CAF50, #8BC34A);
+            border-radius: 10px;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        .commands {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+        
+        .command-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50px;
+            padding: 10px 18px;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .command-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-3px);
+        }
+        
+        .breathing-exercise {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            margin-top: 15px;
+        }
+        
+        .breath-circle {
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #4CAF50, #8BC34A);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2rem;
+            font-weight: bold;
+            color: white;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            transition: all 4s ease;
+        }
+        
+        .breath-text {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #FFD700;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .breath-instructions {
+            font-size: 1.2rem;
+            text-align: center;
+            max-width: 80%;
+            line-height: 1.6;
+        }
+        
+        footer {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            text-align: center;
+            font-size: 1rem;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .sound-toggle {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes jump {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-30px); }
+        }
+        
+        @keyframes run {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(20px); }
+            100% { transform: translateX(0); }
+        }
+        
+        @keyframes sleep {
+            0% { transform: rotate(0); }
+            25% { transform: rotate(10deg); }
+            75% { transform: rotate(-10deg); }
+            100% { transform: rotate(0); }
+        }
+        
+        @keyframes breatheIn {
+            0% { transform: scale(0.7); }
+            100% { transform: scale(1.2); }
+        }
+        
+        @keyframes breatheOut {
+            0% { transform: scale(1.2); }
+            100% { transform: scale(0.7); }
+        }
+        
+        .jumping { animation: jump 0.8s ease; }
+        .running { animation: run 0.5s ease infinite; }
+        .sleeping { animation: sleep 2s ease infinite; }
+        
+        .breathing-in { animation: breatheIn 4s ease-in forwards; }
+        .breathing-out { animation: breatheOut 6s ease-out forwards; }
+        
+        /* Game content containers */
+        .game-content {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            width: 100%;
+        }
+        
+        .active-content {
+            display: flex;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .logo h1 { font-size: 2rem; }
+            .modes { gap: 8px; }
+            .mode-btn { padding: 10px 15px; font-size: 0.95rem; }
+            .content { padding: 15px; }
+            .word-display { font-size: 2.2rem; }
+            .mic-btn { width: 70px; height: 70px; }
+            .breath-circle { width: 150px; height: 150px; }
+        }
+        
+        @media (max-width: 480px) {
+            .logo h1 { font-size: 1.7rem; }
+            .logo i { font-size: 2rem; }
+            .subtitle { font-size: 1rem; }
+            .mode-btn { padding: 8px 12px; font-size: 0.85rem; }
+            .level-info { flex-direction: column; align-items: center; gap: 5px; font-size: 0.95rem; }
+            .word-display { font-size: 1.8rem; }
+            .character { width: 90px; height: 90px; }
+            .character i { font-size: 3rem; }
+            .image-display { width: 120px; height: 120px; }
+            .image-display i { font-size: 4rem; }
+            .feedback { font-size: 1.3rem; }
+            .breath-circle { width: 120px; height: 120px; }
+            .breath-text { font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fas fa-crown"></i>
+                <h1>ملك الكلمة</h1>
+            </div>
+            <p class="subtitle">لعبة تمارين نطق وتنفس للأطفال - تحسين النطق والتركيز والتنفس</p>
+        </header>
+        
+        <div class="game-area">
+            <div class="modes">
+                <button class="mode-btn active" data-mode="sayWord">
+                    <i class="fas fa-microphone-alt"></i> قل الكلمة
+                </button>
+                <button class="mode-btn" data-mode="guessObject">
+                    <i class="fas fa-image"></i> ما هذا؟
+                </button>
+                <button class="mode-btn" data-mode="commands">
+                    <i class="fas fa-gamepad"></i> أوامر صوتية
+                </button>
+                <button class="mode-btn" data-mode="breathing">
+                    <i class="fas fa-wind"></i> تمارين تنفس
+                </button>
+            </div>
+            
+            <div class="content">
+                <div class="level-info">
+                    <span>المستوى: <strong>سهل</strong></span>
+                    <span>النقاط: <strong>150</strong></span>
+                    <span>الدقة: <strong>85%</strong></span>
+                </div>
+                
+                <div class="character">
+                    <i class="fas fa-robot"></i>
+                </div>
+                
+                <!-- Say the Word Content -->
+                <div class="game-content active-content" id="sayWordContent">
+                    <div class="word-display" id="wordDisplay">تفاحة</div>
+                    <div class="feedback" id="sayWordFeedback">حاول تقول "تفاحة" بعد أخذ نفس عميق</div>
+                    <button class="mic-btn" id="micButton">
+                        <i class="fas fa-microphone"></i>
+                    </button>
+                </div>
+                
+                <!-- Guess the Object Content -->
+                <div class="game-content" id="guessObjectContent">
+                    <div class="image-display" id="imageDisplay">
+                        <i class="fas fa-apple-alt"></i>
+                    </div>
+                    <div class="feedback" id="guessObjectFeedback">ما اسم هذا الشيء؟</div>
+                    <button class="mic-btn" id="micButton2">
+                        <i class="fas fa-microphone"></i>
+                    </button>
+                </div>
+                
+                <!-- Commands Content -->
+                <div class="game-content" id="commandsContent">
+                    <div class="feedback" id="commandsFeedback">جرب أن تقول "اقفز" أو "اركض"</div>
+                    <div class="commands" id="commandButtons">
+                        <button class="command-btn" data-command="اقفز">اقفز</button>
+                        <button class="command-btn" data-command="اركض">اركض</button>
+                        <button class="command-btn" data-command="نم">نم</button>
+                        <button class="command-btn" data-command="غني">غني</button>
+                        <button class="command-btn" data-command="دور">دور</button>
+                    </div>
+                    <button class="mic-btn" id="micButton3">
+                        <i class="fas fa-microphone"></i>
+                    </button>
+                </div>
+                
+                <!-- Breathing Exercise Content -->
+                <div class="game-content" id="breathingContent">
+                    <div class="breathing-exercise">
+                        <div class="breath-circle" id="breathCircle">
+                            <div class="breath-text" id="breathText">شهيق</div>
+                        </div>
+                        <p class="breath-instructions" id="breathInstructions">
+            خذ نفسًا عميقًا لمدة 4 ثوانٍ، احبس نفسك 4 ثوانٍ، ثم أخرج النفس ببطء لمدة 6 ثوانٍ.
+            كرر التمرين 5 مرات لتحسين التنفس والنطق.
+                        </p>
+                    </div>
+                    <div class="feedback" id="breathingFeedback">تمرين التنفس لتحسين النطق</div>
+                </div>
+                
+                <div class="progress-container">
+                    <div class="progress-bar" id="progressBar" style="width: 50%;"></div>
+                </div>
+            </div>
+            
+            <div class="instructions" id="instructions">
+        قبل النطق: خذ نفسًا عميقًا، ثم انطق الكلمة بوضوح وبصوت مسموع.
+        إذا لم يتعرف النظام على كلامك، حاول التحدث ببطء وبصوت أعلى.
+            </div>
+        </div>
+        
+        <footer>
+            <span>لعبة لتحسين النطق والتنفس - للأطفال والكبار</span>
+            <button class="sound-toggle" id="soundToggle">
+                <i class="fas fa-volume-up"></i>
+            </button>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Game elements
+            const micButton = document.getElementById('micButton');
+            const micButton2 = document.getElementById('micButton2');
+            const micButton3 = document.getElementById('micButton3');
+            const wordDisplay = document.getElementById('wordDisplay');
+            const imageDisplay = document.getElementById('imageDisplay');
+            const feedbacks = {
+                sayWord: document.getElementById('sayWordFeedback'),
+                guessObject: document.getElementById('guessObjectFeedback'),
+                commands: document.getElementById('commandsFeedback'),
+                breathing: document.getElementById('breathingFeedback')
+            };
+            const progressBar = document.getElementById('progressBar');
+            const commandButtons = document.getElementById('commandButtons');
+            const instructions = document.getElementById('instructions');
+            const soundToggle = document.getElementById('soundToggle');
+            const character = document.querySelector('.character i');
+            const modeButtons = document.querySelectorAll('.mode-btn');
+            const breathCircle = document.getElementById('breathCircle');
+            const breathText = document.getElementById('breathText');
+            const breathInstructions = document.getElementById('breathInstructions');
+            
+            // Game content containers
+            const gameContents = {
+                sayWord: document.getElementById('sayWordContent'),
+                guessObject: document.getElementById('guessObjectContent'),
+                commands: document.getElementById('commandsContent'),
+                breathing: document.getElementById('breathingContent')
+            };
+            
+            // Game state
+            let currentMode = 'sayWord';
+            let isListening = false;
+            let soundsEnabled = true;
+            let score = 150;
+            let accuracy = 85;
+            let level = 'easy';
+            let breathingInterval;
+            let breathPhase = 0; // 0: inhale, 1: hold, 2: exhale
+            
+            // Word lists for different modes
+            const words = {
+                easy: ['تفاحة', 'موز', 'برتقال', 'فراولة', 'عنب', 'بطيخ', 'خوخ', 'كمثرى'],
+                medium: ['جمل', 'أسد', 'فيل', 'زرافة', 'نمر', 'قرد', 'دب', 'تمساح'],
+                hard: ['كمبيوتر', 'تلفزيون', 'سيارة', 'دراجة', 'طائرة', 'سفينة', 'قطار', 'هاتف']
+            };
+            
+            const objects = {
+                easy: [
+                    {name: 'تفاحة', icon: 'apple-alt'},
+                    {name: 'موز', icon: 'banana'},
+                    {name: 'برتقال', icon: 'orange'},
+                    {name: 'فراولة', icon: 'strawberry'}
+                ],
+                medium: [
+                    {name: 'جمل', icon: 'camel'},
+                    {name: 'أسد', icon: 'paw'},
+                    {name: 'فيل', icon: 'elephant'},
+                    {name: 'زرافة', icon: 'giraffe'}
+                ],
+                hard: [
+                    {name: 'كمبيوتر', icon: 'laptop'},
+                    {name: 'تلفزيون', icon: 'tv'},
+                    {name: 'سيارة', icon: 'car'},
+                    {name: 'دراجة', icon: 'bicycle'}
+                ]
+            };
+            
+            const commands = ['اقفز', 'اركض', 'نم', 'غني', 'دور'];
+            
+            // Initialize the game
+            function initGame() {
+                updateGameDisplay();
+                setupEventListeners();
+                showRandomWord();
+            }
+            
+            // Set up event listeners
+            function setupEventListeners() {
+                // Mode switching
+                modeButtons.forEach(button => {
+                    button.addEventListener('click', function() {
+                        modeButtons.forEach(btn => btn.classList.remove('active'));
+                        this.classList.add('active');
+                        currentMode = this.dataset.mode;
+                        switchMode();
+                    });
+                });
+                
+                // Microphone buttons
+                micButton.addEventListener('click', () => toggleListening('sayWord'));
+                micButton2.addEventListener('click', () => toggleListening('guessObject'));
+                micButton3.addEventListener('click', () => toggleListening('commands'));
+                
+                // Command buttons (for testing)
+                document.querySelectorAll('.command-btn').forEach(button => {
+                    button.addEventListener('click', function() {
+                        processCommand(this.dataset.command);
+                    });
+                });
+                
+                // Sound toggle
+                soundToggle.addEventListener('click', function() {
+                    soundsEnabled = !soundsEnabled;
+                    this.innerHTML = soundsEnabled ? 
+                        '<i class="fas fa-volume-up"></i>' : 
+                        '<i class="fas fa-volume-mute"></i>';
+                    speak(soundsEnabled ? 'الصوت مفعل' : 'الصوت معطل');
+                });
+            }
+            
+            // Switch between game modes
+            function switchMode() {
+                // Hide all game contents
+                Object.values(gameContents).forEach(content => {
+                    content.style.display = 'none';
+                });
+                
+                // Show current mode content
+                gameContents[currentMode].style.display = 'flex';
+                
+                // Reset character animations
+                character.classList.remove('jumping', 'running', 'sleeping', 'fa-spin');
+                
+                // Stop any ongoing breathing exercise
+                clearInterval(breathingInterval);
+                breathCircle.classList.remove('breathing-in', 'breathing-out');
+                
+                // Update based on mode
+                switch(currentMode) {
+                    case 'sayWord':
+                        instructions.textContent = 'قبل النطق: خذ نفسًا عميقًا، ثم انطق الكلمة بوضوح وبصوت مسموع';
+                        showRandomWord();
+                        break;
+                    case 'guessObject':
+                        instructions.textContent = 'انظر للصورة، خذ نفسًا عميقًا، ثم قل ما تراه بالعربية بوضوح';
+                        showRandomObject();
+                        break;
+                    case 'commands':
+                        instructions.textContent = 'خذ نفسًا عميقًا، ثم قل أمرًا للشخصية (مثل: اقفز، اركض، نم)';
+                        feedbacks.commands.textContent = 'جرب أن تقول "اقفز" أو "اركض"';
+                        break;
+                    case 'breathing':
+                        instructions.textContent = 'تمرين التنفس لتحسين النطق والتركيز - ابدأ بالتنفس مع الدائرة';
+                        startBreathingExercise();
+                        feedbacks.breathing.textContent = 'تمرين التنفس لتحسين النطق';
+                        break;
+                }
+                
+                updateGameDisplay();
+            }
+            
+            // Start breathing exercise
+            function startBreathingExercise() {
+                breathPhase = 0;
+                breathCircle.classList.remove('breathing-in', 'breathing-out');
+                breathCircle.style.transform = 'scale(0.7)';
+                
+                breathingInterval = setInterval(() => {
+                    switch(breathPhase) {
+                        case 0: // Inhale
+                            breathText.textContent = 'شهيق';
+                            breathCircle.classList.remove('breathing-out');
+                            breathCircle.classList.add('breathing-in');
+                            speak('خذ نفسًا عميقًا');
+                            setTimeout(() => { breathPhase = 1; }, 4000);
+                            break;
+                        case 1: // Hold
+                            breathText.textContent = 'احبس';
+                            speak('احبس نفسك');
+                            setTimeout(() => { breathPhase = 2; }, 4000);
+                            break;
+                        case 2: // Exhale
+                            breathText.textContent = 'زفير';
+                            breathCircle.classList.remove('breathing-in');
+                            breathCircle.classList.add('breathing-out');
+                            speak('أخرج النفس ببطء');
+                            setTimeout(() => { 
+                                breathPhase = 0;
+                                score += 5;
+                                updateGameDisplay();
+                            }, 6000);
+                            break;
+                    }
+                }, 14000); // Total cycle time
+            }
+            
+            // Toggle microphone listening
+            function toggleListening(mode) {
+                if (isListening) {
+                    // Stop listening
+                    document.querySelectorAll('.mic-btn').forEach(btn => {
+                        btn.classList.remove('listening');
+                    });
+                    feedbacks[mode].textContent = 'انقر على الميكروفون للبدء';
+                    isListening = false;
+                } else {
+                    // Start listening
+                    document.querySelectorAll('.mic-btn').forEach(btn => {
+                        btn.classList.add('listening');
+                    });
+                    feedbacks[mode].textContent = 'خذ نفسًا عميقًا... أنا أستمع الآن';
+                    isListening = true;
+                    
+                    // Simulate speech recognition with random response
+                    setTimeout(() => {
+                        processSpeech(mode);
+                    }, 3000);
+                }
+            }
+            
+            // Process speech (simulated)
+            function processSpeech(mode) {
+                document.querySelectorAll('.mic-btn').forEach(btn => {
+                    btn.classList.remove('listening');
+                });
+                isListening = false;
+                
+                let recognizedText = '';
+                let isCorrect = false;
+                let noSpeech = false;
+                
+                // 30% chance of no speech detected
+                if (Math.random() < 0.3) {
+                    noSpeech = true;
+                    feedbacks[mode].textContent = 'لم أسمع أي شيء، حاول مرة أخرى بصوت أعلى';
+                    speak('لم أسمعك جيدًا، هل يمكنك التحدث بصوت أعلى؟');
+                    accuracy = Math.max(70, accuracy - 2);
+                    updateGameDisplay();
+                    return;
+                }
+                
+                // Generate response based on mode
+                switch(mode) {
+                    case 'sayWord':
+                        const currentWord = wordDisplay.textContent;
+                        // 85% chance of correct answer (adjusted for better accuracy)
+                        isCorrect = Math.random() > 0.15;
+                        recognizedText = isCorrect ? currentWord : getRandomWord(currentWord);
+                        break;
+                        
+                    case 'guessObject':
+                        const currentObject = imageDisplay.querySelector('i').dataset.name;
+                        // 80% chance of correct answer
+                        isCorrect = Math.random() > 0.2;
+                        recognizedText = isCorrect ? currentObject : getRandomWord(currentObject);
+                        break;
+                        
+                    case 'commands':
+                        // Random command
+                        recognizedText = commands[Math.floor(Math.random() * commands.length)];
+                        isCorrect = true;
+                        break;
+                }
+                
+                // Process the result
+                processResult(recognizedText, isCorrect, mode);
+            }
+            
+            // Process command
+            function processCommand(command) {
+                character.classList.remove('jumping', 'running', 'sleeping', 'fa-spin');
+                
+                switch(command) {
+                    case 'اقفز':
+                        feedbacks.commands.textContent = 'واو! قفزة رائعة!';
+                        character.classList.add('jumping');
+                        speak('ها أنا أقفز! يا له من مرح!');
+                        break;
+                    case 'اركض':
+                        feedbacks.commands.textContent = 'أنت سريع جداً!';
+                        character.classList.add('running');
+                        speak('أركض بسرعة البرق! حاول تلحقني!');
+                        break;
+                    case 'نم':
+                        feedbacks.commands.textContent = 'شخير... شخير...';
+                        character.classList.add('sleeping');
+                        speak('أنا أذهب للنوم... لا توقظني!');
+                        break;
+                    case 'غني':
+                        feedbacks.commands.textContent = '🎵 لا لا لا 🎵';
+                        character.classList.add('fa-spin');
+                        speak('سأغني لك أغنية جميلة! لا لا لا لا لا');
+                        break;
+                    case 'دور':
+                        feedbacks.commands.textContent = 'دوران سريع!';
+                        character.classList.add('fa-spin');
+                        speak('أنا أدور مثل البلبل!');
+                        break;
+                    default:
+                        feedbacks.commands.textContent = 'لم أفهم الأمر، حاول مرة أخرى';
+                        speak('لم أسمعك جيداً، هل يمكنك تكرار الأمر؟');
+                }
+                
+                // Add points for commands
+                score += 5;
+                updateGameDisplay();
+            }
+            
+            // Process recognition result
+            function processResult(recognizedText, isCorrect, mode) {
+                switch(mode) {
+                    case 'sayWord':
+                        const currentWord = wordDisplay.textContent;
+                        if (isCorrect) {
+                            feedbacks.sayWord.innerHTML = `أحسنت! قلت "<strong>${recognizedText}</strong>" بشكل صحيح!`;
+                            speak('أحسنت يا بطل! تابع التقدم!');
+                            score += 10;
+                            accuracy = Math.min(99, accuracy + 1);
+                            
+                            // Show new word after delay
+                            setTimeout(() => {
+                                showRandomWord();
+                            }, 2000);
+                        } else {
+                            feedbacks.sayWord.innerHTML = `حاول مرة أخرى! قلت "<strong>${recognizedText}</strong>" لكن الصحيح هو "<strong>${currentWord}</strong>"`;
+                            speak('لا بأس! حاول مرة أخرى بعد أخذ نفس عميق!');
+                            accuracy = Math.max(70, accuracy - 2);
+                        }
+                        break;
+                        
+                    case 'guessObject':
+                        const currentObject = imageDisplay.querySelector('i').dataset.name;
+                        if (isCorrect) {
+                            feedbacks.guessObject.innerHTML = `صحيح! هذه <strong>${recognizedText}</strong>!`;
+                            speak(`واو! أنت ذكي! هذه ${recognizedText}!`);
+                            score += 15;
+                            accuracy = Math.min(99, accuracy + 1);
+                            
+                            // Show new object after delay
+                            setTimeout(() => {
+                                showRandomObject();
+                            }, 2000);
+                        } else {
+                            feedbacks.guessObject.innerHTML = `ليس صحيح! قلت "<strong>${recognizedText}</strong>" لكن الصحيح هو "<strong>${currentObject}</strong>"`;
+                            speak('حاول مرة أخرى بعد أخذ نفس عميق! أنا واثق أنك تعرفها!');
+                            accuracy = Math.max(70, accuracy - 2);
+                        }
+                        break;
+                        
+                    case 'commands':
+                        processCommand(recognizedText);
+                        break;
+                }
+                
+                // Update progress
+                updateProgress();
+                updateGameDisplay();
+            }
+            
+            // Show random word
+            function showRandomWord() {
+                const wordList = words[level];
+                const randomIndex = Math.floor(Math.random() * wordList.length);
+                wordDisplay.textContent = wordList[randomIndex];
+                feedbacks.sayWord.textContent = `خذ نفسًا عميقًا ثم قل "${wordList[randomIndex]}"`;
+                
+                // Speak the word
+                speak(`خذ نفسًا عميقًا ثم قل "${wordList[randomIndex]}"`);
+            }
+            
+            // Show random object
+            function showRandomObject() {
+                const objectList = objects[level];
+                const randomIndex = Math.floor(Math.random() * objectList.length);
+                const object = objectList[randomIndex];
+                
+                imageDisplay.innerHTML = `<i class="fas fa-${object.icon}" data-name="${object.name}"></i>`;
+                feedbacks.guessObject.textContent = `ما اسم هذا الشيء؟ خذ نفسًا عميقًا ثم اجب`;
+                
+                // Speak the question
+                speak(`ما هذا؟ خذ نفسًا عميقًا ثم اجب`);
+            }
+            
+            // Get random word (different from current)
+            function getRandomWord(currentWord) {
+                let wordList;
+                
+                if (currentMode === 'sayWord') {
+                    wordList = words[level].filter(word => word !== currentWord);
+                } else {
+                    wordList = objects[level].map(obj => obj.name).filter(name => name !== currentWord);
+                }
+                
+                return wordList[Math.floor(Math.random() * wordList.length)];
+            }
+            
+            // Update game display
+            function updateGameDisplay() {
+                document.querySelector('.level-info strong:first-child').textContent = 
+                    level === 'easy' ? 'سهل' : level === 'medium' ? 'متوسط' : 'صعب';
+                
+                document.querySelectorAll('.level-info strong')[1].textContent = score;
+                document.querySelectorAll('.level-info strong')[2].textContent = accuracy + '%';
+                progressBar.style.width = `${(score % 300) / 3}%`;
+            }
+            
+            // Update progress
+            function updateProgress() {
+                // Update level based on score
+                if (score > 200 && level !== 'hard') {
+                    level = 'hard';
+                    speak('تهانينا! لقد وصلت للمستوى الصعب! أنت رائع!');
+                } else if (score > 100 && level !== 'medium') {
+                    level = 'medium';
+                    speak('أحسنت! لقد تقدمت للمستوى المتوسط!');
+                }
+            }
+            
+            // Text-to-speech function
+            function speak(text) {
+                if (!soundsEnabled) return;
+                
+                // In a real implementation, this would use the SpeechSynthesis API
+                console.log('Speaking:', text);
+                
+                // Show speaking indicator
+                const originalFeedback = feedbacks[currentMode].textContent;
+                feedbacks[currentMode].innerHTML = '<i class="fas fa-comment-dots"></i> ' + text;
+                
+                // Revert after delay
+                setTimeout(() => {
+                    if (feedbacks[currentMode].textContent.includes(text)) {
+                        feedbacks[currentMode].textContent = originalFeedback;
+                    }
+                }, 3000);
+            }
+            
+            // Initialize the game
+            initGame();
+        });
+    </script>
+</body>
+</html>
