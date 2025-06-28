@@ -336,6 +336,29 @@
             cursor: pointer;
         }
         
+        .api-warning {
+            background: rgba(255, 0, 0, 0.2);
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+            display: none;
+        }
+        
+        .speech-bubble {
+            position: absolute;
+            top: -40px;
+            background: white;
+            color: #0a3d62;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 1.1rem;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+            animation: fadeIn 0.3s ease;
+            max-width: 200px;
+            text-align: center;
+            display: none;
+        }
+        
         @keyframes pulse {
             0% { transform: scale(1); }
             50% { transform: scale(1.1); }
@@ -373,6 +396,11 @@
         @keyframes breatheOut {
             0% { transform: scale(1.2); }
             100% { transform: scale(0.7); }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
         .jumping { animation: jump 0.8s ease; }
@@ -458,6 +486,7 @@
                 
                 <div class="character">
                     <i class="fas fa-robot"></i>
+                    <div class="speech-bubble" id="speechBubble"></div>
                 </div>
                 
                 <!-- Say the Word Content -->
@@ -512,6 +541,11 @@
                 <div class="progress-container">
                     <div class="progress-bar" id="progressBar" style="width: 50%;"></div>
                 </div>
+                
+                <div class="api-warning" id="apiWarning">
+                    ملاحظة: قد لا يدعم متصفحك خاصية التعرف على الكلام أو الصوت باللغة العربية بشكل كامل.
+                    تأكد من استخدام أحدث إصدار من Chrome أو Edge للحصول على أفضل تجربة.
+                </div>
             </div>
             
             <div class="instructions" id="instructions">
@@ -550,7 +584,8 @@
             const modeButtons = document.querySelectorAll('.mode-btn');
             const breathCircle = document.getElementById('breathCircle');
             const breathText = document.getElementById('breathText');
-            const breathInstructions = document.getElementById('breathInstructions');
+            const apiWarning = document.getElementById('apiWarning');
+            const speechBubble = document.getElementById('speechBubble');
             
             // Game content containers
             const gameContents = {
@@ -559,6 +594,32 @@
                 commands: document.getElementById('commandsContent'),
                 breathing: document.getElementById('breathingContent')
             };
+            
+            // Web Speech API components
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const SpeechSynthesis = window.speechSynthesis;
+            
+            // Create speech recognition object
+            let recognition;
+            if (SpeechRecognition) {
+                recognition = new SpeechRecognition();
+                recognition.continuous = false;
+                recognition.lang = 'ar-SA'; // Saudi Arabic
+                recognition.interimResults = false;
+                recognition.maxAlternatives = 1;
+            } else {
+                apiWarning.style.display = 'block';
+            }
+            
+            // Check speech synthesis support
+            let voices = [];
+            if (SpeechSynthesis) {
+                SpeechSynthesis.onvoiceschanged = () => {
+                    voices = SpeechSynthesis.getVoices().filter(voice => voice.lang.startsWith('ar'));
+                };
+            } else {
+                apiWarning.style.display = 'block';
+            }
             
             // Game state
             let currentMode = 'sayWord';
@@ -605,6 +666,11 @@
                 updateGameDisplay();
                 setupEventListeners();
                 showRandomWord();
+                
+                // Show API warning if not supported
+                if (!SpeechRecognition || !SpeechSynthesis) {
+                    apiWarning.style.display = 'block';
+                }
             }
             
             // Set up event listeners
@@ -639,6 +705,30 @@
                         '<i class="fas fa-volume-mute"></i>';
                     speak(soundsEnabled ? 'الصوت مفعل' : 'الصوت معطل');
                 });
+                
+                // Setup speech recognition events
+                if (recognition) {
+                    recognition.onresult = (event) => {
+                        const transcript = event.results[0][0].transcript;
+                        processSpeechResult(transcript);
+                    };
+                    
+                    recognition.onerror = (event) => {
+                        console.error('Speech recognition error', event.error);
+                        feedbacks[currentMode].textContent = 'حدث خطأ في التعرف على الكلام، حاول مرة أخرى';
+                        document.querySelectorAll('.mic-btn').forEach(btn => {
+                            btn.classList.remove('listening');
+                        });
+                        isListening = false;
+                    };
+                    
+                    recognition.onend = () => {
+                        document.querySelectorAll('.mic-btn').forEach(btn => {
+                            btn.classList.remove('listening');
+                        });
+                        isListening = false;
+                    };
+                }
             }
             
             // Switch between game modes
@@ -719,8 +809,15 @@
             
             // Toggle microphone listening
             function toggleListening(mode) {
+                if (!recognition) {
+                    feedbacks[mode].textContent = 'المتصفح لا يدعم التعرف على الكلام';
+                    apiWarning.style.display = 'block';
+                    return;
+                }
+                
                 if (isListening) {
                     // Stop listening
+                    recognition.stop();
                     document.querySelectorAll('.mic-btn').forEach(btn => {
                         btn.classList.remove('listening');
                     });
@@ -728,65 +825,48 @@
                     isListening = false;
                 } else {
                     // Start listening
-                    document.querySelectorAll('.mic-btn').forEach(btn => {
-                        btn.classList.add('listening');
-                    });
-                    feedbacks[mode].textContent = 'خذ نفسًا عميقًا... أنا أستمع الآن';
-                    isListening = true;
-                    
-                    // Simulate speech recognition with random response
-                    setTimeout(() => {
-                        processSpeech(mode);
-                    }, 3000);
+                    try {
+                        recognition.start();
+                        document.querySelectorAll('.mic-btn').forEach(btn => {
+                            btn.classList.add('listening');
+                        });
+                        feedbacks[mode].textContent = 'خذ نفسًا عميقًا... أنا أستمع الآن';
+                        isListening = true;
+                    } catch (e) {
+                        console.error('Speech recognition start error', e);
+                        feedbacks[mode].textContent = 'لا يمكن بدء التعرف على الكلام، حاول تحديث الصفحة';
+                    }
                 }
             }
             
-            // Process speech (simulated)
-            function processSpeech(mode) {
-                document.querySelectorAll('.mic-btn').forEach(btn => {
-                    btn.classList.remove('listening');
-                });
-                isListening = false;
-                
-                let recognizedText = '';
+            // Process speech recognition result
+            function processSpeechResult(transcript) {
+                const recognizedText = transcript.trim();
                 let isCorrect = false;
-                let noSpeech = false;
                 
-                // 30% chance of no speech detected
-                if (Math.random() < 0.3) {
-                    noSpeech = true;
-                    feedbacks[mode].textContent = 'لم أسمع أي شيء، حاول مرة أخرى بصوت أعلى';
-                    speak('لم أسمعك جيدًا، هل يمكنك التحدث بصوت أعلى؟');
-                    accuracy = Math.max(70, accuracy - 2);
-                    updateGameDisplay();
-                    return;
-                }
-                
-                // Generate response based on mode
-                switch(mode) {
+                switch(currentMode) {
                     case 'sayWord':
                         const currentWord = wordDisplay.textContent;
-                        // 85% chance of correct answer (adjusted for better accuracy)
-                        isCorrect = Math.random() > 0.15;
-                        recognizedText = isCorrect ? currentWord : getRandomWord(currentWord);
+                        isCorrect = recognizedText === currentWord;
+                        processResult(recognizedText, isCorrect, 'sayWord');
                         break;
                         
                     case 'guessObject':
                         const currentObject = imageDisplay.querySelector('i').dataset.name;
-                        // 80% chance of correct answer
-                        isCorrect = Math.random() > 0.2;
-                        recognizedText = isCorrect ? currentObject : getRandomWord(currentObject);
+                        isCorrect = recognizedText === currentObject;
+                        processResult(recognizedText, isCorrect, 'guessObject');
                         break;
                         
                     case 'commands':
-                        // Random command
-                        recognizedText = commands[Math.floor(Math.random() * commands.length)];
-                        isCorrect = true;
+                        const validCommand = commands.includes(recognizedText);
+                        if (validCommand) {
+                            processCommand(recognizedText);
+                        } else {
+                            feedbacks.commands.textContent = 'لم أفهم الأمر، جرب "اقفز" أو "اركض"';
+                            speak('لم أسمعك جيداً، هل يمكنك تكرار الأمر؟');
+                        }
                         break;
                 }
-                
-                // Process the result
-                processResult(recognizedText, isCorrect, mode);
             }
             
             // Process command
@@ -869,10 +949,6 @@
                             accuracy = Math.max(70, accuracy - 2);
                         }
                         break;
-                        
-                    case 'commands':
-                        processCommand(recognizedText);
-                        break;
                 }
                 
                 // Update progress
@@ -904,19 +980,6 @@
                 speak(`ما هذا؟ خذ نفسًا عميقًا ثم اجب`);
             }
             
-            // Get random word (different from current)
-            function getRandomWord(currentWord) {
-                let wordList;
-                
-                if (currentMode === 'sayWord') {
-                    wordList = words[level].filter(word => word !== currentWord);
-                } else {
-                    wordList = objects[level].map(obj => obj.name).filter(name => name !== currentWord);
-                }
-                
-                return wordList[Math.floor(Math.random() * wordList.length)];
-            }
-            
             // Update game display
             function updateGameDisplay() {
                 document.querySelector('.level-info strong:first-child').textContent = 
@@ -939,23 +1002,52 @@
                 }
             }
             
-            // Text-to-speech function
+            // Text-to-speech function using Web Speech API
             function speak(text) {
-                if (!soundsEnabled) return;
+                if (!soundsEnabled || !SpeechSynthesis) return;
                 
-                // In a real implementation, this would use the SpeechSynthesis API
-                console.log('Speaking:', text);
+                // Cancel any ongoing speech
+                SpeechSynthesis.cancel();
                 
-                // Show speaking indicator
-                const originalFeedback = feedbacks[currentMode].textContent;
-                feedbacks[currentMode].innerHTML = '<i class="fas fa-comment-dots"></i> ' + text;
+                // Create speech utterance
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'ar-SA'; // Saudi Arabic
+                utterance.rate = 0.9; // Slightly slower for clarity
+                utterance.pitch = 1.2; // Slightly higher pitch for friendly voice
                 
-                // Revert after delay
-                setTimeout(() => {
-                    if (feedbacks[currentMode].textContent.includes(text)) {
-                        feedbacks[currentMode].textContent = originalFeedback;
+                // Select Arabic voice if available
+                if (voices.length > 0) {
+                    const arabicVoice = voices.find(voice => voice.lang === 'ar-SA') || 
+                                        voices.find(voice => voice.lang.startsWith('ar'));
+                    if (arabicVoice) {
+                        utterance.voice = arabicVoice;
                     }
-                }, 3000);
+                }
+                
+                // Show speech bubble
+                speechBubble.textContent = text;
+                speechBubble.style.display = 'block';
+                
+                // Handle events
+                utterance.onstart = () => {
+                    character.style.color = '#4CAF50';
+                };
+                
+                utterance.onend = () => {
+                    character.style.color = '#0a3d62';
+                    setTimeout(() => {
+                        speechBubble.style.display = 'none';
+                    }, 1000);
+                };
+                
+                utterance.onerror = (event) => {
+                    console.error('Speech synthesis error', event);
+                    character.style.color = '#0a3d62';
+                    speechBubble.style.display = 'none';
+                };
+                
+                // Speak the text
+                SpeechSynthesis.speak(utterance);
             }
             
             // Initialize the game
