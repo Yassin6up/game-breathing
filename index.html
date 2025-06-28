@@ -359,6 +359,42 @@
             display: none;
         }
         
+        .connection-status {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.9rem;
+            padding: 5px 10px;
+            border-radius: 20px;
+            background: rgba(0, 0, 0, 0.3);
+        }
+        
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        
+        .status-connected {
+            background: #4CAF50;
+        }
+        
+        .status-disconnected {
+            background: #FF416C;
+        }
+        
+        .offline-fallback {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 10px;
+            text-align: center;
+            display: none;
+        }
+        
         @keyframes pulse {
             0% { transform: scale(1); }
             50% { transform: scale(1.1); }
@@ -432,6 +468,7 @@
             .word-display { font-size: 2.2rem; }
             .mic-btn { width: 70px; height: 70px; }
             .breath-circle { width: 150px; height: 150px; }
+            .connection-status { top: 10px; right: 10px; }
         }
         
         @media (max-width: 480px) {
@@ -448,11 +485,24 @@
             .feedback { font-size: 1.3rem; }
             .breath-circle { width: 120px; height: 120px; }
             .breath-text { font-size: 1.5rem; }
+            .connection-status { 
+                position: relative; 
+                top: 0;
+                right: 0;
+                margin: 10px auto;
+                width: 100%;
+                justify-content: center;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
+        <div class="connection-status" id="connectionStatus">
+            <div class="status-indicator status-connected" id="statusIndicator"></div>
+            <span>متصل بالشبكة</span>
+        </div>
+        
         <header>
             <div class="logo">
                 <i class="fas fa-crown"></i>
@@ -546,6 +596,11 @@
                     ملاحظة: قد لا يدعم متصفحك خاصية التعرف على الكلام أو الصوت باللغة العربية بشكل كامل.
                     تأكد من استخدام أحدث إصدار من Chrome أو Edge للحصول على أفضل تجربة.
                 </div>
+                
+                <div class="offline-fallback" id="offlineFallback">
+                    <p>يبدو أنك غير متصل بالإنترنت. لا يمكن استخدام خاصية التعرف على الكلام بدون اتصال.</p>
+                    <p>يمكنك استخدام الأزرار للتحكم في الشخصية يدويًا.</p>
+                </div>
             </div>
             
             <div class="instructions" id="instructions">
@@ -586,6 +641,9 @@
             const breathText = document.getElementById('breathText');
             const apiWarning = document.getElementById('apiWarning');
             const speechBubble = document.getElementById('speechBubble');
+            const connectionStatus = document.getElementById('connectionStatus');
+            const statusIndicator = document.getElementById('statusIndicator');
+            const offlineFallback = document.getElementById('offlineFallback');
             
             // Game content containers
             const gameContents = {
@@ -630,6 +688,7 @@
             let level = 'easy';
             let breathingInterval;
             let breathPhase = 0; // 0: inhale, 1: hold, 2: exhale
+            let isOnline = true;
             
             // Word lists for different modes
             const words = {
@@ -670,6 +729,34 @@
                 // Show API warning if not supported
                 if (!SpeechRecognition || !SpeechSynthesis) {
                     apiWarning.style.display = 'block';
+                }
+                
+                // Check online status
+                checkOnlineStatus();
+                window.addEventListener('online', checkOnlineStatus);
+                window.addEventListener('offline', checkOnlineStatus);
+            }
+            
+            // Check online status
+            function checkOnlineStatus() {
+                isOnline = navigator.onLine;
+                if (isOnline) {
+                    statusIndicator.className = 'status-indicator status-connected';
+                    connectionStatus.querySelector('span').textContent = 'متصل بالشبكة';
+                    offlineFallback.style.display = 'none';
+                } else {
+                    statusIndicator.className = 'status-indicator status-disconnected';
+                    connectionStatus.querySelector('span').textContent = 'غير متصل بالشبكة';
+                    offlineFallback.style.display = 'block';
+                    
+                    // Stop recognition if offline
+                    if (isListening && recognition) {
+                        recognition.stop();
+                        document.querySelectorAll('.mic-btn').forEach(btn => {
+                            btn.classList.remove('listening');
+                        });
+                        isListening = false;
+                    }
                 }
             }
             
@@ -715,7 +802,15 @@
                     
                     recognition.onerror = (event) => {
                         console.error('Speech recognition error', event.error);
-                        feedbacks[currentMode].textContent = 'حدث خطأ في التعرف على الكلام، حاول مرة أخرى';
+                        
+                        // Handle network errors specifically
+                        if (event.error === 'network') {
+                            feedbacks[currentMode].textContent = 'خطأ في الشبكة، يرجى التحقق من اتصال الإنترنت';
+                            speak('حدث خطأ في الشبكة، يرجى التحقق من اتصال الإنترنت');
+                        } else {
+                            feedbacks[currentMode].textContent = 'حدث خطأ في التعرف على الكلام، حاول مرة أخرى';
+                        }
+                        
                         document.querySelectorAll('.mic-btn').forEach(btn => {
                             btn.classList.remove('listening');
                         });
@@ -812,6 +907,11 @@
                 if (!recognition) {
                     feedbacks[mode].textContent = 'المتصفح لا يدعم التعرف على الكلام';
                     apiWarning.style.display = 'block';
+                    return;
+                }
+                
+                if (!isOnline) {
+                    feedbacks[mode].textContent = 'لا يمكن استخدام الميكروفون بدون اتصال بالإنترنت';
                     return;
                 }
                 
