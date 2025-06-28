@@ -395,6 +395,27 @@
             display: none;
         }
         
+        .retry-btn {
+            background: rgba(255, 255, 255, 0.3);
+            border: none;
+            border-radius: 50px;
+            padding: 8px 15px;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .retry-btn:hover {
+            background: rgba(255, 255, 255, 0.4);
+        }
+        
+        .flexible-match {
+            color: #FFD700;
+            font-weight: bold;
+        }
+        
         @keyframes pulse {
             0% { transform: scale(1); }
             50% { transform: scale(1.1); }
@@ -600,6 +621,9 @@
                 <div class="offline-fallback" id="offlineFallback">
                     <p>يبدو أنك غير متصل بالإنترنت. لا يمكن استخدام خاصية التعرف على الكلام بدون اتصال.</p>
                     <p>يمكنك استخدام الأزرار للتحكم في الشخصية يدويًا.</p>
+                    <button class="retry-btn" id="retryButton">
+                        <i class="fas fa-sync-alt"></i> المحاولة مرة أخرى
+                    </button>
                 </div>
             </div>
             
@@ -644,6 +668,7 @@
             const connectionStatus = document.getElementById('connectionStatus');
             const statusIndicator = document.getElementById('statusIndicator');
             const offlineFallback = document.getElementById('offlineFallback');
+            const retryButton = document.getElementById('retryButton');
             
             // Game content containers
             const gameContents = {
@@ -806,7 +831,11 @@
                         // Handle network errors specifically
                         if (event.error === 'network') {
                             feedbacks[currentMode].textContent = 'خطأ في الشبكة، يرجى التحقق من اتصال الإنترنت';
-                            speak('حدث خطأ في الشبكة، يرجى التحقق من اتصال الإنترنت');
+                            
+                            // Only try to speak if online
+                            if (isOnline) {
+                                speak('حدث خطأ في الشبكة، يرجى التحقق من اتصال الإنترنت');
+                            }
                         } else {
                             feedbacks[currentMode].textContent = 'حدث خطأ في التعرف على الكلام، حاول مرة أخرى';
                         }
@@ -824,6 +853,14 @@
                         isListening = false;
                     };
                 }
+                
+                // Retry button
+                retryButton.addEventListener('click', function() {
+                    checkOnlineStatus();
+                    if (isOnline) {
+                        toggleListening(currentMode);
+                    }
+                });
             }
             
             // Switch between game modes
@@ -912,6 +949,7 @@
                 
                 if (!isOnline) {
                     feedbacks[mode].textContent = 'لا يمكن استخدام الميكروفون بدون اتصال بالإنترنت';
+                    offlineFallback.style.display = 'block';
                     return;
                 }
                 
@@ -947,26 +985,93 @@
                 switch(currentMode) {
                     case 'sayWord':
                         const currentWord = wordDisplay.textContent;
-                        isCorrect = recognizedText === currentWord;
+                        isCorrect = flexibleMatch(recognizedText, currentWord);
                         processResult(recognizedText, isCorrect, 'sayWord');
                         break;
                         
                     case 'guessObject':
                         const currentObject = imageDisplay.querySelector('i').dataset.name;
-                        isCorrect = recognizedText === currentObject;
+                        isCorrect = flexibleMatch(recognizedText, currentObject);
                         processResult(recognizedText, isCorrect, 'guessObject');
                         break;
                         
                     case 'commands':
-                        const validCommand = commands.includes(recognizedText);
+                        const validCommand = commands.some(cmd => flexibleMatch(recognizedText, cmd));
                         if (validCommand) {
-                            processCommand(recognizedText);
+                            // Find the closest matching command
+                            const matchedCommand = commands.find(cmd => flexibleMatch(recognizedText, cmd));
+                            processCommand(matchedCommand);
                         } else {
                             feedbacks.commands.textContent = 'لم أفهم الأمر، جرب "اقفز" أو "اركض"';
                             speak('لم أسمعك جيداً، هل يمكنك تكرار الأمر؟');
                         }
                         break;
                 }
+            }
+            
+            // Flexible text matching for Arabic words
+            function flexibleMatch(text1, text2) {
+                // Normalize both texts to ignore small differences
+                const normalize = (str) => {
+                    return str
+                        .replace(/\s/g, '') // Remove spaces
+                        .replace(/ة/g, 'ه') // Convert تاء مربوطة to هاء
+                        .replace(/أ|إ|آ|ٱ/g, 'ا') // Normalize alef variations
+                        .replace(/ى/g, 'ي') // Convert alif maqsura to ya
+                        .replace(/[ًٌٍَُِّْـ]/g, '') // Remove diacritics
+                        .normalize('NFC') // Normalize to composed form
+                        .toLowerCase();
+                };
+                
+                const normalized1 = normalize(text1);
+                const normalized2 = normalize(text2);
+                
+                // Check for exact match after normalization
+                if (normalized1 === normalized2) return true;
+                
+                // Check for similarity using Levenshtein distance for small differences
+                const similarity = calculateSimilarity(normalized1, normalized2);
+                return similarity >= 0.85; // 85% similarity threshold
+            }
+            
+            // Calculate similarity between two strings (0 to 1)
+            function calculateSimilarity(s1, s2) {
+                const longer = s1.length > s2.length ? s1 : s2;
+                const shorter = s1.length > s2.length ? s2 : s1;
+                
+                // If either string is empty, return 0
+                if (longer.length === 0) return 0.0;
+                
+                // Calculate Levenshtein distance
+                const distance = levenshteinDistance(longer, shorter);
+                return 1.0 - (distance / longer.length);
+            }
+            
+            // Levenshtein distance algorithm
+            function levenshteinDistance(s, t) {
+                if (s.length === 0) return t.length;
+                if (t.length === 0) return s.length;
+                
+                const matrix = [];
+                for (let i = 0; i <= t.length; i++) {
+                    matrix[i] = [i];
+                }
+                for (let j = 0; j <= s.length; j++) {
+                    matrix[0][j] = j;
+                }
+                
+                for (let i = 1; i <= t.length; i++) {
+                    for (let j = 1; j <= s.length; j++) {
+                        const cost = t.charAt(i-1) === s.charAt(j-1) ? 0 : 1;
+                        matrix[i][j] = Math.min(
+                            matrix[i-1][j] + 1,   // deletion
+                            matrix[i][j-1] + 1,   // insertion
+                            matrix[i-1][j-1] + cost // substitution
+                        );
+                    }
+                }
+                
+                return matrix[t.length][s.length];
             }
             
             // Process command
@@ -1015,7 +1120,7 @@
                     case 'sayWord':
                         const currentWord = wordDisplay.textContent;
                         if (isCorrect) {
-                            feedbacks.sayWord.innerHTML = `أحسنت! قلت "<strong>${recognizedText}</strong>" بشكل صحيح!`;
+                            feedbacks.sayWord.innerHTML = `أحسنت! قلت "<strong class="flexible-match">${recognizedText}</strong>" بشكل صحيح!`;
                             speak('أحسنت يا بطل! تابع التقدم!');
                             score += 10;
                             accuracy = Math.min(99, accuracy + 1);
@@ -1025,7 +1130,7 @@
                                 showRandomWord();
                             }, 2000);
                         } else {
-                            feedbacks.sayWord.innerHTML = `حاول مرة أخرى! قلت "<strong>${recognizedText}</strong>" لكن الصحيح هو "<strong>${currentWord}</strong>"`;
+                            feedbacks.sayWord.innerHTML = `حاول مرة أخرى! قلت "<strong>${recognizedText}</strong>" لكن الصحيح هو "<strong class="flexible-match">${currentWord}</strong>"`;
                             speak('لا بأس! حاول مرة أخرى بعد أخذ نفس عميق!');
                             accuracy = Math.max(70, accuracy - 2);
                         }
@@ -1034,7 +1139,7 @@
                     case 'guessObject':
                         const currentObject = imageDisplay.querySelector('i').dataset.name;
                         if (isCorrect) {
-                            feedbacks.guessObject.innerHTML = `صحيح! هذه <strong>${recognizedText}</strong>!`;
+                            feedbacks.guessObject.innerHTML = `صحيح! هذه <strong class="flexible-match">${recognizedText}</strong>!`;
                             speak(`واو! أنت ذكي! هذه ${recognizedText}!`);
                             score += 15;
                             accuracy = Math.min(99, accuracy + 1);
@@ -1044,7 +1149,7 @@
                                 showRandomObject();
                             }, 2000);
                         } else {
-                            feedbacks.guessObject.innerHTML = `ليس صحيح! قلت "<strong>${recognizedText}</strong>" لكن الصحيح هو "<strong>${currentObject}</strong>"`;
+                            feedbacks.guessObject.innerHTML = `ليس صحيح! قلت "<strong>${recognizedText}</strong>" لكن الصحيح هو "<strong class="flexible-match">${currentObject}</strong>"`;
                             speak('حاول مرة أخرى بعد أخذ نفس عميق! أنا واثق أنك تعرفها!');
                             accuracy = Math.max(70, accuracy - 2);
                         }
