@@ -184,11 +184,13 @@
             margin: 0 auto;
             overflow: hidden;
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            position: relative;
         }
         
-        .image-display i {
-            font-size: 5rem;
-            color: #0a3d62;
+        .object-image {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
         }
         
         .feedback {
@@ -460,6 +462,11 @@
             to { opacity: 1; transform: translateY(0); }
         }
         
+        @keyframes icon-pop {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
         .jumping { animation: jump 0.8s ease; }
         .running { animation: run 0.5s ease infinite; }
         .sleeping { animation: sleep 2s ease infinite; }
@@ -490,6 +497,7 @@
             .mic-btn { width: 70px; height: 70px; }
             .breath-circle { width: 150px; height: 150px; }
             .connection-status { top: 10px; right: 10px; }
+            .image-display { width: 130px; height: 130px; }
         }
         
         @media (max-width: 480px) {
@@ -501,8 +509,7 @@
             .word-display { font-size: 1.8rem; }
             .character { width: 90px; height: 90px; }
             .character i { font-size: 3rem; }
-            .image-display { width: 120px; height: 120px; }
-            .image-display i { font-size: 4rem; }
+            .image-display { width: 110px; height: 110px; }
             .feedback { font-size: 1.3rem; }
             .breath-circle { width: 120px; height: 120px; }
             .breath-text { font-size: 1.5rem; }
@@ -572,7 +579,7 @@
                 <!-- Guess the Object Content -->
                 <div class="game-content" id="guessObjectContent">
                     <div class="image-display" id="imageDisplay">
-                        <i class="fas fa-apple-alt"></i>
+                        <!-- Image will be dynamically inserted here -->
                     </div>
                     <div class="feedback" id="guessObjectFeedback">ما اسم هذا الشيء؟</div>
                     <button class="mic-btn" id="micButton2">
@@ -643,6 +650,48 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // ==========================
+            // CUSTOMIZABLE IMAGE PATHS
+            // ==========================
+            // Change this to your images directory
+            const IMAGE_BASE_PATH = "https://i.ibb.co/";
+            
+            // Easy level images
+            const easyImages = {
+                'تفاحة': '0C8fM1R/apple.png',
+                'موز': '0C8fM1R/banana.png',
+                'برتقال': '0C8fM1R/orange.png',
+                'فراولة': '0C8fM1R/strawberry.png',
+                'عنب': '0C8fM1R/grapes.png',
+                'بطيخ': '0C8fM1R/watermelon.png',
+                'خوخ': '0C8fM1R/peach.png',
+                'كمثرى': '0C8fM1R/pear.png'
+            };
+            
+            // Medium level images
+            const mediumImages = {
+                'جمل': '0C8fM1R/camel.png',
+                'أسد': '0C8fM1R/lion.png',
+                'فيل': '0C8fM1R/elephant.png',
+                'زرافة': '0C8fM1R/giraffe.png',
+                'نمر': '0C8fM1R/tiger.png',
+                'قرد': '0C8fM1R/monkey.png',
+                'دب': '0C8fM1R/bear.png',
+                'تمساح': '0C8fM1R/crocodile.png'
+            };
+            
+            // Hard level images
+            const hardImages = {
+                'كمبيوتر': '0C8fM1R/laptop.png',
+                'تلفزيون': '0C8fM1R/tv.png',
+                'سيارة': '0C8fM1R/car.png',
+                'دراجة': '0C8fM1R/bicycle.png',
+                'طائرة': '0C8fM1R/airplane.png',
+                'سفينة': '0C8fM1R/ship.png',
+                'قطار': '0C8fM1R/train.png',
+                'هاتف': '0C8fM1R/phone.png'
+            };
+            
             // Game elements
             const micButton = document.getElementById('micButton');
             const micButton2 = document.getElementById('micButton2');
@@ -714,33 +763,13 @@
             let breathingInterval;
             let breathPhase = 0; // 0: inhale, 1: hold, 2: exhale
             let isOnline = true;
+            let currentObject = null;
             
             // Word lists for different modes
             const words = {
                 easy: ['تفاحة', 'موز', 'برتقال', 'فراولة', 'عنب', 'بطيخ', 'خوخ', 'كمثرى'],
                 medium: ['جمل', 'أسد', 'فيل', 'زرافة', 'نمر', 'قرد', 'دب', 'تمساح'],
                 hard: ['كمبيوتر', 'تلفزيون', 'سيارة', 'دراجة', 'طائرة', 'سفينة', 'قطار', 'هاتف']
-            };
-            
-            const objects = {
-                easy: [
-                    {name: 'تفاحة', icon: 'apple-alt'},
-                    {name: 'موز', icon: 'banana'},
-                    {name: 'برتقال', icon: 'orange'},
-                    {name: 'فراولة', icon: 'strawberry'}
-                ],
-                medium: [
-                    {name: 'جمل', icon: 'camel'},
-                    {name: 'أسد', icon: 'paw'},
-                    {name: 'فيل', icon: 'elephant'},
-                    {name: 'زرافة', icon: 'giraffe'}
-                ],
-                hard: [
-                    {name: 'كمبيوتر', icon: 'laptop'},
-                    {name: 'تلفزيون', icon: 'tv'},
-                    {name: 'سيارة', icon: 'car'},
-                    {name: 'دراجة', icon: 'bicycle'}
-                ]
             };
             
             const commands = ['اقفز', 'اركض', 'نم', 'غني', 'دور'];
@@ -990,9 +1019,10 @@
                         break;
                         
                     case 'guessObject':
-                        const currentObject = imageDisplay.querySelector('i').dataset.name;
-                        isCorrect = flexibleMatch(recognizedText, currentObject);
-                        processResult(recognizedText, isCorrect, 'guessObject');
+                        if (currentObject) {
+                            isCorrect = flexibleMatch(recognizedText, currentObject);
+                            processResult(recognizedText, isCorrect, 'guessObject');
+                        }
                         break;
                         
                     case 'commands':
@@ -1137,21 +1167,22 @@
                         break;
                         
                     case 'guessObject':
-                        const currentObject = imageDisplay.querySelector('i').dataset.name;
-                        if (isCorrect) {
-                            feedbacks.guessObject.innerHTML = `صحيح! هذه <strong class="flexible-match">${recognizedText}</strong>!`;
-                            speak(`واو! أنت ذكي! هذه ${recognizedText}!`);
-                            score += 15;
-                            accuracy = Math.min(99, accuracy + 1);
-                            
-                            // Show new object after delay
-                            setTimeout(() => {
-                                showRandomObject();
-                            }, 2000);
-                        } else {
-                            feedbacks.guessObject.innerHTML = `ليس صحيح! قلت "<strong>${recognizedText}</strong>" لكن الصحيح هو "<strong class="flexible-match">${currentObject}</strong>"`;
-                            speak('حاول مرة أخرى بعد أخذ نفس عميق! أنا واثق أنك تعرفها!');
-                            accuracy = Math.max(70, accuracy - 2);
+                        if (currentObject) {
+                            if (isCorrect) {
+                                feedbacks.guessObject.innerHTML = `صحيح! هذه <strong class="flexible-match">${recognizedText}</strong>!`;
+                                speak(`واو! أنت ذكي! هذه ${recognizedText}!`);
+                                score += 15;
+                                accuracy = Math.min(99, accuracy + 1);
+                                
+                                // Show new object after delay
+                                setTimeout(() => {
+                                    showRandomObject();
+                                }, 2000);
+                            } else {
+                                feedbacks.guessObject.innerHTML = `ليس صحيح! قلت "<strong>${recognizedText}</strong>" لكن الصحيح هو "<strong class="flexible-match">${currentObject}</strong>"`;
+                                speak('حاول مرة أخرى بعد أخذ نفس عميق! أنا واثق أنك تعرفها!');
+                                accuracy = Math.max(70, accuracy - 2);
+                            }
                         }
                         break;
                 }
@@ -1172,13 +1203,43 @@
                 speak(`خذ نفسًا عميقًا ثم قل "${wordList[randomIndex]}"`);
             }
             
-            // Show random object
+            // Show random object with image
             function showRandomObject() {
-                const objectList = objects[level];
-                const randomIndex = Math.floor(Math.random() * objectList.length);
-                const object = objectList[randomIndex];
+                const wordList = words[level];
+                const randomIndex = Math.floor(Math.random() * wordList.length);
+                currentObject = wordList[randomIndex];
                 
-                imageDisplay.innerHTML = `<i class="fas fa-${object.icon}" data-name="${object.name}"></i>`;
+                // Clear previous image
+                imageDisplay.innerHTML = '';
+                
+                // Create image element
+                const img = document.createElement('img');
+                img.className = 'object-image';
+                img.alt = currentObject;
+                
+                // Set image source based on level
+                if (level === 'easy' && easyImages[currentObject]) {
+                    img.src = IMAGE_BASE_PATH + easyImages[currentObject];
+                } 
+                else if (level === 'medium' && mediumImages[currentObject]) {
+                    img.src = IMAGE_BASE_PATH + mediumImages[currentObject];
+                } 
+                else if (level === 'hard' && hardImages[currentObject]) {
+                    img.src = IMAGE_BASE_PATH + hardImages[currentObject];
+                } 
+                else {
+                    // Fallback to text if image not found
+                    const fallbackText = document.createElement('div');
+                    fallbackText.className = 'fallback-text';
+                    fallbackText.textContent = currentObject;
+                    fallbackText.style.fontSize = '2rem';
+                    fallbackText.style.color = '#0a3d62';
+                    fallbackText.style.fontWeight = 'bold';
+                    imageDisplay.appendChild(fallbackText);
+                    return;
+                }
+                
+                imageDisplay.appendChild(img);
                 feedbacks.guessObject.textContent = `ما اسم هذا الشيء؟ خذ نفسًا عميقًا ثم اجب`;
                 
                 // Speak the question
